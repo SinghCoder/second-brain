@@ -46,6 +46,7 @@ def create_calendar_event(title: str, start_time: datetime, end_time: datetime, 
             },
         }
         event = service.events().insert(calendarId='primary', body=event).execute()
+        print(event)
         if event is None:
             raise Exception("Event creation failed")
         print("Event successfully created")

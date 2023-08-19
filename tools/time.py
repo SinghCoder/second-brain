@@ -1,7 +1,7 @@
-import datetime
 import json
 from langchain.agents import Tool
-
+import parsedatetime as pdt
+from datetime import datetime
 
 def time():
     # Get the current time
@@ -44,10 +44,15 @@ def datetime_tool(request: str = 'now') -> str:
         '{{"fulldate":"<fulldate>","date":"<date>","time":"<time>"}}'
     '''
 
+    cal = pdt.Calendar()
+    now = datetime.now()
+    datetime_obj:datetime
+    datetime_obj, _ = cal.parseDT(request, now)
+
     data = {
-        'fulldate': fulldate(),
-        'date': date(),
-        'time': time()
+        'fulldate': datetime_obj.isoformat(),
+        'date': datetime_obj.date().isoformat(),
+        'time': datetime_obj.time().isoformat()
     }
 
     response_as_json = json.dumps(data)

@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+from organize import agent_executor
 
 load_dotenv()
 
@@ -60,20 +61,14 @@ def slack_events():
     if event_type == 'message':
         user_id = data['event']['user']
         user_name, user_email = get_user_info(user_id)
-
         channel_id = data['event']['channel']
         channel_name = get_channel_name(channel_id)
-
         message_text = data['event']['text']
         resolved_message = resolve_mentions(message_text)
-
-        # Format: User <user_name> sent message: <message_text> in channel <channel_name>
-        content = f"User {user_name} - {user_email} sent message: {resolved_message} in channel {channel_name}"
-        print(content)
-        if SLACK_USERNAME in content:
-            print("This message mentions me")
-
-    # Respond to Slack to acknowledge receipt
+        content = f"User {user_name}({user_email}): {resolved_message}"
+        concerned_message = SLACK_USERNAME in content
+        if concerned_message:
+            agent_executor.run(content)
     return jsonify({"status": "ok"})
 
 @app.route('/telegram', methods=['POST'])
