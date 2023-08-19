@@ -8,8 +8,9 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
 load_dotenv()
-my_slack_user_name = "Harpinder Jot"
-my_telegram_user_name = "SinghCoder"
+
+SLACK_USERNAME = os.environ.get("SLACK_USERNAME")
+TELEGRAM_USER_NAME = os.environ.get("TELEGRAM_USERNAME")
 
 slack_client = WebClient(token=os.environ.get("SLACK_BOT_TOKEN"))
 
@@ -23,7 +24,7 @@ def get_user_info(user_id):
         return user_name, user_email
     except SlackApiError:
         print(f"Error getting user info: {traceback.format_exc()}")
-        return user_id
+        return user_id, ""
 
 def get_channel_name(channel_id):
     try:
@@ -69,7 +70,7 @@ def slack_events():
         # Format: User <user_name> sent message: <message_text> in channel <channel_name>
         content = f"User {user_name} - {user_email} sent message: {resolved_message} in channel {channel_name}"
         print(content)
-        if my_slack_user_name in content:
+        if SLACK_USERNAME in content:
             print("This message mentions me")
 
     # Respond to Slack to acknowledge receipt
@@ -85,7 +86,7 @@ def telegram_events():
 
         content = f"User {username} sent message: {text}"
         print(content)
-        if my_telegram_user_name in content:
+        if TELEGRAM_USER_NAME in content:
             print("This message mentions me")
         return jsonify({"message": "Event received"})
 
