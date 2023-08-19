@@ -3,3 +3,4 @@ secret.rc
 capturers/.env
 credentials.json
 token.json
+*/__pycache__
