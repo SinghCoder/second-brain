@@ -8,6 +8,12 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from organize import agent_executor
 
+# import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
+
+NUM_THREADS = 10
+executor = ThreadPoolExecutor(max_workers=NUM_THREADS)
+
 load_dotenv()
 
 SLACK_USERNAME = os.environ.get("SLACK_USERNAME")
@@ -51,6 +57,7 @@ def resolve_mentions(message_text):
 @app.route('/slack/events', methods=['POST'])
 def slack_events():
     data = request.json
+    print(f"Event received from slack: {data}")
 
     # Check if the request contains a challenge field
     if 'challenge' in data:
@@ -68,7 +75,7 @@ def slack_events():
         content = f"User {user_name}({user_email}): {resolved_message}"
         concerned_message = SLACK_USERNAME in content
         if concerned_message:
-            agent_executor.run(content)
+            executor.submit(agent_executor.run, content)
     return jsonify({"status": "ok"})
 
 @app.route('/telegram', methods=['POST'])
@@ -88,3 +95,5 @@ def telegram_events():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000)
+    # wait for the executor to finish
+    executor.shutdown()

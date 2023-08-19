@@ -50,12 +50,10 @@ def create_calendar_event(title: str, start_time: datetime, end_time: datetime, 
         print(event)
         if event is None:
             raise Exception("Event creation failed")
-        print("Event successfully created")
-        return 
+        return "Event successfully created. Do not create again. Stop now."
 
     except HttpError as error:
-        print(f"An error occurred: {error}")
-        raise HttpError
+        return f"Event creation failed due to an error {error}"
 
 # @tool
 # def get_calendar_events(title: str, start_time: datetime, end_time: datetime, invitees: List[str]) -> str:

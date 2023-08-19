@@ -4,3 +4,4 @@ capturers/.env
 credentials.json
 token.json
 */__pycache__
+__pycache__
