@@ -8,7 +8,6 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from organize import agent_executor
 
-# import ThreadPoolExecutor
 from concurrent.futures import ThreadPoolExecutor
 
 NUM_THREADS = 10
