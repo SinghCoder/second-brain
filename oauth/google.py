@@ -8,7 +8,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 
 def get_google_oauth_creds():
     # If modifying these scopes, delete the file token.json.
-    SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+    SCOPES = ['https://www.googleapis.com/auth/calendar']
     TOKEN_JSON_FILE = 'token.json'
     CREDENTIALS_JSON_FILE = 'credentials.json'
 
