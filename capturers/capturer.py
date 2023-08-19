@@ -22,8 +22,12 @@ def slack_events():
 @app.route('/telegram', methods=['POST'])
 def telegram_events():
     data = request.json
-    print(data)
-    return jsonify({"message": "Event received"})
+    if 'message' in data and 'text' in data['message']:
+        username = data['message']['from']['first_name']
+        text = data['message'].get("text", "No text")
+
+        print(f"User {username} sent message: {text}")
+        return jsonify({"message": "Event received"})
 
 
 if __name__ == '__main__':
