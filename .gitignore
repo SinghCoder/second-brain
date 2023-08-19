@@ -1,3 +1,5 @@
 .venv/
 secret.rc
 capturers/.env
+credentials.json
+token.json
