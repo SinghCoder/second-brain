@@ -9,6 +9,15 @@ load_dotenv()
 slack_client = WebClient(token=os.environ.get("SLACK_BOT_TOKEN"))
 slack_user_id = os.environ.get("SLACK_USER_ID")
 
+def send_message_in_thread(channel_id, thread_ts, message):
+    print(f"Sending slack message: {message} at channel: {channel_id} in thread: {thread_ts}")
+    try:
+        resp = slack_client.chat_postMessage(channel=channel_id, thread_ts=thread_ts, text=message)
+    except Exception as e:
+        print(f"Error sending slack message: {e}")
+        return {"error": {e}}
+    return None
+
 def send_slack_message(channel_id, message):
     print(f"Sending slack message: {message}")
     meeting_titles = []

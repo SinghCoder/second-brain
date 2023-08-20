@@ -14,6 +14,7 @@ from distill import distill_agent_executor
 from organize import organize_agent_executor
 from qna import qna
 from tools.calendar import update_meeting_body
+from tools.slack import send_message_in_thread
 
 NUM_THREADS = 1
 executor = ThreadPoolExecutor(max_workers=NUM_THREADS)
@@ -102,7 +103,7 @@ def slack_events():
     message_text = event_data['text']
     is_bot_message, resolved_message = resolve_mentions(message_text)
     if is_bot_message:
-        print(qna(resolved_message))
+        send_message_in_thread(channel_id, ts, qna(resolved_message))
         return jsonify({"status": "ok"})
 
     content = f"{ts} | User {user_name}({user_email}): {resolved_message}"
