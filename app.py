@@ -1,5 +1,6 @@
 import os
 import re
+import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 
@@ -9,7 +10,8 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
 from db import get_meeting_id_from_source_id, slack_message_exists, store_slack_message
-from organize import agent_executor
+from organize import organize_agent_executor
+from distill import distill_agent_executor
 from tools.calendar import update_meeting_body
 
 NUM_THREADS = 1
@@ -21,6 +23,14 @@ SLACK_USERNAME = os.environ.get("SLACK_USERNAME")
 TELEGRAM_USER_NAME = os.environ.get("TELEGRAM_USERNAME")
 
 slack_client = WebClient(token=os.environ.get("SLACK_BOT_TOKEN"))
+organize_agent = organize_agent_executor()
+distill_agent = distill_agent_executor()
+
+def organize(content):
+    executor.submit(organize_agent.run, content)
+
+def distill(content):
+    executor.submit(distill_agent.run, content)
 
 app = Flask(__name__)
 
@@ -58,7 +68,6 @@ def resolve_mentions(message_text):
 @app.route('/slack/events', methods=['POST'])
 def slack_events():
     data = request.json
-    print(f"Event received from slack: {data}")
 
     # Check if the request contains a challenge field
     if 'challenge' in data:
@@ -66,32 +75,36 @@ def slack_events():
 
     event_data = data['event']
     event_type = event_data['type']
-    # Print only the message events:
-    if event_type == 'message':
-        user_id = event_data['user']
-        user_name, user_email = get_user_info(user_id)
-        channel_id = event_data['channel']
-        channel_name = get_channel_name(channel_id)
-        thread_ts = event_data.get('thread_ts', "")
-        message_text = event_data['text']
-        resolved_message = resolve_mentions(message_text)
-        ts = event_data['event_ts']
-        exists = slack_message_exists(ts)
-        if exists:
-            print(f"Message with ts: {ts} already exists. Ignoring.")
-            return jsonify({"status": "ok"})
-        content = f"{ts} | User {user_name}({user_email}): {resolved_message}"
-        print(content)
-        existing_meeting_id = get_meeting_id_from_source_id(thread_ts)
-        if existing_meeting_id != "":
-            # Update the meeting instead.
-            update_meeting_body(existing_meeting_id, resolved_message)
-        else:
-            # Let the agent run
-            concerned_message = SLACK_USERNAME in content
-            if concerned_message:
-                executor.submit(agent_executor.run, content)
+
+    if event_type != 'message':
+        print(f"Event type {event_type} not supported")
+        return jsonify({"status": "ok"})
+
+    ts = event_data['event_ts']
+    if slack_message_exists(ts):
+        print(f"Message with ts: {ts} already exists. Ignoring.")
+        return jsonify({"status": "ok"})
+    else:
         store_slack_message(ts)
+    
+    user_id = event_data['user']
+    user_name, user_email = get_user_info(user_id)
+    channel_id = event_data['channel']
+    channel_name = get_channel_name(channel_id)
+    thread_ts = event_data.get('thread_ts', "")
+    message_text = event_data['text']
+    resolved_message = resolve_mentions(message_text)
+
+    content = f"{ts} | User {user_name}({user_email}): {resolved_message}"
+    print(content)
+    meeting_id, exists = get_meeting_id_from_source_id(thread_ts)
+    if exists:
+        update_meeting_body(meeting_id, resolved_message)
+        organize(content)
+    if not exists:
+        concerned_message = SLACK_USERNAME in content
+        if concerned_message:
+            organize(content)
     return jsonify({"status": "ok"})
 
 @app.route('/telegram', methods=['POST'])
@@ -108,6 +121,11 @@ def telegram_events():
             print("This message mentions me")
         return jsonify({"message": "Event received"})
 
+def distill_cron():
+    while True:
+        num_minutes = 2
+        time.sleep(60*num_minutes)
+        distill("Show me the prioritized list of things to do today.")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000)

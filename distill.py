@@ -19,6 +19,7 @@ You should be able to prioritize things for the day for the user on the basis of
 When there are conflicts in the schedule, suggest some other free time of the day for the conflicting event.
 Also, make sure, you do not overload the user with too many things to do in a day.
 If you need to ask/confirm something from the user, create a todo item for the user.
+Also, keep track of actions already taken. 
 """
 
 def distill_agent_executor():
