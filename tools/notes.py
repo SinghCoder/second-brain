@@ -12,12 +12,11 @@ def add_notes(title: str, source: str, note: str) -> str:
     A note is added only when the information is required to be stored.
     '''
     try:
-        header = f"- {datetime.now().isoformat(timespec='hours')}"
+        header = f"{source} : {datetime.now().strftime('%m/%d/%Y, %H:%M')}"
         ## Add to todo list
         with open('store/notes.md', 'a') as f:
             f.write(f"# {title}\n")
-            f.write(f"{header}\n")
-            f.write(f"- {source}\n")
+            f.write(f"- {header}\n")
             f.write(note)
         return "Note added."
     except Exception as e:
