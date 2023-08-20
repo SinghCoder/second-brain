@@ -103,6 +103,7 @@ def update_meeting_body(calendar_meeting_id: str, new_description: str) -> Any:
 
     current_description = event['description']
     new_description = current_description + "\n" + new_description
+    print(f"Summarizing new description: {new_description}")
     new_description = summarize(new_description)
     # Update the description
     event['description'] = new_description
