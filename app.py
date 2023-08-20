@@ -115,6 +115,7 @@ def slack_events():
         concerned_message = SLACK_USERNAME in content
         if concerned_message:
             organize(content)
+            distill("Notify the user if there is any conflicting events.")
     return jsonify({"status": "ok"})
 
 @app.route('/telegram', methods=['POST'])
@@ -132,11 +133,6 @@ def telegram_events():
             organize(content)
         return jsonify({"message": "Event received"})
 
-def distill_cron():
-    while True:
-        num_minutes = 2
-        time.sleep(60*num_minutes)
-        distill("Show me the prioritized list of things to do today.")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000)

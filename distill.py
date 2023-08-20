@@ -1,19 +1,24 @@
 import os
 from datetime import datetime
+
 import dateutil.parser as parser
+from dotenv import load_dotenv
 from langchain.agents import AgentExecutor, OpenAIFunctionsAgent
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import SystemMessage
+from langchain.tools import tool
 
-from tools.calendar import create_calendar_event, get_calendar_events,fetch_calendar_events
+from tools.calendar import (
+    create_calendar_event,
+    fetch_calendar_events,
+    get_calendar_events,
+)
+from tools.contact import get_contact
+from tools.notes import add_notes
+from tools.slack import notify_user
 from tools.time import Datetime
 from tools.todo import add_todo_item
-from tools.notes import add_notes
-from tools.contact import get_contact
-from tools.slack import notify_user
 
-
-from dotenv import load_dotenv
 load_dotenv()
 
 USER = os.environ.get("USER")
@@ -23,7 +28,7 @@ f"""
 You are a personal assistant of the user {USER}.
 You have access to the user's notes, calendar meetings and todo items.
 You should be able to prioritize things for the day for the user on the basis of time and context.
-When there are conflicts in the schedule, suggest some other free time of the day for the conflicting event.
+When there are conflicts in the schedule, you should notify the user.
 Also, make sure, you do not overload the user with too many things to do in a day.
 If you need to ask/confirm something from the user, create a todo item for the user.
 Also, keep track of actions already taken. 
@@ -38,7 +43,11 @@ def distill_agent_executor():
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
     return agent_executor
 
+@tool
 def get_conflicting_meetings():
+    """
+        Returns list of conflicting meetings for the user for the current day, if any.
+    """
     events = fetch_calendar_events()
     if not events:
         return "No events found for today"
