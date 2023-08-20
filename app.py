@@ -10,8 +10,8 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
 from db import get_meeting_id_from_source_id, slack_message_exists, store_slack_message
-from organize import organize_agent_executor
 from distill import distill_agent_executor
+from organize import organize_agent_executor
 from tools.calendar import update_meeting_body
 
 NUM_THREADS = 1
@@ -115,10 +115,11 @@ def telegram_events():
         username = data['message']['from']['first_name']
         text = data['message'].get("text", "No text")
 
-        content = f"User {username} sent message: {text}"
+        content = f"User {username} sent message on telegram: {text}"
         print(content)
         if TELEGRAM_USER_NAME in content:
             print("This message mentions me")
+            organize(content)
         return jsonify({"message": "Event received"})
 
 def distill_cron():
