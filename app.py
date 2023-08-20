@@ -12,6 +12,7 @@ from slack_sdk.errors import SlackApiError
 from db import get_meeting_id_from_source_id, slack_message_exists, store_slack_message
 from distill import distill_agent_executor
 from organize import organize_agent_executor
+from qna import qna
 from tools.calendar import update_meeting_body
 
 NUM_THREADS = 1
@@ -37,9 +38,12 @@ app = Flask(__name__)
 def get_user_info(user_id):
     try:
         user_info = slack_client.users_info(user=user_id)
+        is_bot = user_info['user']['is_bot']
         user_name = user_info['user']['real_name']
-        user_email = user_info['user']['profile']['email']
-        return user_name, user_email
+        user_email = ""
+        if not is_bot:
+            user_email = user_info['user']['profile']['email']
+        return is_bot, user_name, user_email
     except SlackApiError:
         print(f"Error getting user info: {traceback.format_exc()}")
         return user_id, ""
@@ -60,14 +64,17 @@ def resolve_mentions(message_text):
     user_mentions = re.findall(r'<@(\w+)>', message_text)
     resolved_message = message_text
     for mention in user_mentions:
-        user_name, user_email = get_user_info(mention)
+        is_bot, user_name, user_email = get_user_info(mention)
+        if is_bot:
+            return is_bot, resolved_message.replace(f'<@{mention}>', '')
         resolved_message = resolved_message.replace(f'<@{mention}>', f'{user_name} - {user_email}')
-    return resolved_message
+    return False, resolved_message
 
 
 @app.route('/slack/events', methods=['POST'])
 def slack_events():
     data = request.json
+    print(data)
 
     # Check if the request contains a challenge field
     if 'challenge' in data:
@@ -88,12 +95,15 @@ def slack_events():
         store_slack_message(ts)
     
     user_id = event_data['user']
-    user_name, user_email = get_user_info(user_id)
+    is_bot, user_name, user_email = get_user_info(user_id)
     channel_id = event_data['channel']
     channel_name = get_channel_name(channel_id)
     thread_ts = event_data.get('thread_ts', "")
     message_text = event_data['text']
-    resolved_message = resolve_mentions(message_text)
+    is_bot_message, resolved_message = resolve_mentions(message_text)
+    if is_bot_message:
+        print(qna(resolved_message))
+        return jsonify({"status": "ok"})
 
     content = f"{ts} | User {user_name}({user_email}): {resolved_message}"
     print(content)
