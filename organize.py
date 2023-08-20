@@ -5,6 +5,7 @@ from langchain.schema import SystemMessage
 from tools.calendar import create_calendar_event, get_calendar_events
 from tools.time import Datetime
 from tools.todo import add_todo_item
+from tools.notes import add_notes
 
 system_description = \
 """
@@ -21,6 +22,18 @@ Also, make sure, you do not overload the user with too many things to do in a da
 llm = ChatOpenAI(temperature=0, model='gpt-4')
 system_message = SystemMessage(content=system_description)
 prompt = OpenAIFunctionsAgent.create_prompt(system_message=system_message)
-tools = [create_calendar_event, Datetime, add_todo_item, get_calendar_events]
+tools = [create_calendar_event, Datetime, add_todo_item, get_calendar_events, add_notes]
 agent = OpenAIFunctionsAgent(llm=llm, tools=tools, prompt=prompt)
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+
+agent_executor.run(
+    "This is a slack thread decide between Harpinder and Rahul. \n" +\
+    "Harpinder: Angola is a beautiful country. \n" +\
+    "Rahul: I agree. \n" +\
+    "Harpinder: I want to visit it. \n" +\
+    "Rahul: What are the step to visit Angola? \n" +\
+    "Harpinder: There are many steps. \n" +\
+    "Rahul: What are the steps? \n" +\
+    "Harpinder: I don't know. \n"
+)
+

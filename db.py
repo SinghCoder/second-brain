@@ -6,7 +6,7 @@ cursor = conn.cursor()
 
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS meetings (
-        id TEXT PRIMARY KEY, -- This would be the ID of the corresponding source from which the meeting was created. So, for Slack, this would be the parent Slack message ID.
+        id TEXT PRIMARY KEY,     -- This would be the ID of the corresponding source from which the meeting was created. So, for Slack, this would be the parent Slack message ID.
         meeting_id TEXT NOT NULL -- This would be the ID of the meeting in the calendar.
     )
 ''')

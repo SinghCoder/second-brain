@@ -16,7 +16,7 @@ def add_todo_item(what: str, when: str) -> str:
         parsed_when = datetime_obj.isoformat()
 
         ## Add to todo list
-        with open('todo.md', 'a') as f:
+        with open('store/todo.md', 'a') as f:
             f.write(f"- [ ] {what} by {when} ({parsed_when})\n")
 
         return json.dumps({'what': what,'when': f"{when} ({parsed_when})"})
