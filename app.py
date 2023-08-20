@@ -1,16 +1,18 @@
 import os
 import re
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+
+from db import get_meeting_id_from_source_id, slack_message_exists, store_slack_message
 from organize import agent_executor
+from tools.calendar import update_meeting_body
 
-from concurrent.futures import ThreadPoolExecutor
-
-NUM_THREADS = 10
+NUM_THREADS = 1
 executor = ThreadPoolExecutor(max_workers=NUM_THREADS)
 
 load_dotenv()
@@ -62,19 +64,34 @@ def slack_events():
     if 'challenge' in data:
         return jsonify({"challenge": data['challenge']})
 
-    event_type = data['event']['type']
+    event_data = data['event']
+    event_type = event_data['type']
     # Print only the message events:
     if event_type == 'message':
-        user_id = data['event']['user']
+        user_id = event_data['user']
         user_name, user_email = get_user_info(user_id)
-        channel_id = data['event']['channel']
+        channel_id = event_data['channel']
         channel_name = get_channel_name(channel_id)
-        message_text = data['event']['text']
+        thread_ts = event_data.get('thread_ts', "")
+        message_text = event_data['text']
         resolved_message = resolve_mentions(message_text)
-        content = f"User {user_name}({user_email}): {resolved_message}"
-        concerned_message = SLACK_USERNAME in content
-        if concerned_message:
-            executor.submit(agent_executor.run, content)
+        ts = event_data['event_ts']
+        exists = slack_message_exists(ts)
+        if exists:
+            print(f"Message with ts: {ts} already exists. Ignoring.")
+            return jsonify({"status": "ok"})
+        content = f"{ts} | User {user_name}({user_email}): {resolved_message}"
+        print(content)
+        existing_meeting_id = get_meeting_id_from_source_id(thread_ts)
+        if existing_meeting_id != "":
+            # Update the meeting instead.
+            update_meeting_body(existing_meeting_id, resolved_message)
+        else:
+            # Let the agent run
+            concerned_message = SLACK_USERNAME in content
+            if concerned_message:
+                executor.submit(agent_executor.run, content)
+        store_slack_message(ts)
     return jsonify({"status": "ok"})
 
 @app.route('/telegram', methods=['POST'])
