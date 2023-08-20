@@ -10,6 +10,11 @@ from tools.time import Datetime
 from tools.todo import add_todo_item
 from tools.notes import add_notes
 from tools.contact import get_contact
+from tools.slack import notify_user
+
+
+from dotenv import load_dotenv
+load_dotenv()
 
 USER = os.environ.get("USER")
 
@@ -28,11 +33,10 @@ def distill_agent_executor():
     llm = ChatOpenAI(temperature=0, model='gpt-4')
     system_message = SystemMessage(content=distill_agent_description)
     prompt = OpenAIFunctionsAgent.create_prompt(system_message=system_message)
-    tools = [Datetime, add_todo_item, get_calendar_events, get_contact]
+    tools = [Datetime, notify_user, get_conflicting_meetings]
     agent = OpenAIFunctionsAgent(llm=llm, tools=tools, prompt=prompt)
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
     return agent_executor
-
 
 def get_conflicting_meetings():
     events = fetch_calendar_events()

@@ -50,7 +50,7 @@ def create_meeting(source_id: str, meeting_id: str) -> None:
     print(cursor.fetchall())
     conn.close()
 
-def get_meeting_id_from_source_id(source_id: str) -> tuple[str, bool]:
+def get_meeting_id_from_source_id(source_id: str) -> "tuple[str, bool]":
     conn = sqlite3.connect('secondbrain.db')
     cursor = conn.cursor()
     cursor.execute('SELECT meeting_id FROM meetings WHERE id=?', (source_id,))

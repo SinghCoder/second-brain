@@ -1,6 +1,9 @@
-from datetime import datetime
-from langchain.tools import tool
 import json
+from datetime import datetime
+
+from langchain.tools import tool
+
+from tools.summarizer import summarize_just_urls
 
 # chromadb_client = chromadb.Client()
 # collection = chromadb_client.create_collection("notes")
@@ -17,15 +20,9 @@ def add_notes(title: str, source: str, note: str) -> str:
         header = f"{source} : {timestamp}"
         ## Add to todo list
         with open('store/notes.md', 'a') as f:
-            f.write(f"# {title}\n")
+            f.write(f"\n\n# {title}\n")
             f.write(f"- {header}\n")
-            f.write(note)
-
-        # collection.add(
-        #     documents=[note],
-        #     metadatas=[{'source': source, 'time': timestamp}],
-        #     ids=[random.randint(5000, 100000)]
-        # )
+            f.write(summarize_just_urls(note))
         return "Note added."
     except Exception as e:
         return json.dumps({'error': str(e)})
