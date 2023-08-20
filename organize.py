@@ -27,7 +27,3 @@ tools = [create_calendar_event, Datetime, add_todo_item, get_calendar_events, ad
 agent = OpenAIFunctionsAgent(llm=llm, tools=tools, prompt=prompt)
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
-agent_executor.run(
-    "Hey Rohit, let's do a meeting at 5 pm today on today's presentation.",
-)
-
