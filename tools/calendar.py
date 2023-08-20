@@ -58,11 +58,8 @@ def create_calendar_event(source_message_ts: str, title: str, description: str, 
     except HttpError as error:
         return f"Event creation failed due to an error {error}"
 
-@tool
-def get_calendar_events() -> List[Any]:
-    """
-        Returns list of calendar events for the user for the current day.
-    """
+
+def fetch_calendar_events() -> List[Any]:
     try:
         page_token = None
         today = datetime.utcnow().date().isoformat()
@@ -78,13 +75,19 @@ def get_calendar_events() -> List[Any]:
             ).execute()
             events.extend(events_result.get('items', []))
             page_token = events_result.get('nextPageToken')
-            if not page_token:
-                break
+            if not page_token: break
+        return events
     except HttpError as error:
         print(f"An error occurred: {error}")
         raise HttpError
+
+@tool
+def get_calendar_events() -> List[Any]:
+    """
+        Returns list of calendar events for the user for the current day.
+    """
+    events = fetch_calendar_events()
     if not events:
-        print("No events found for today")
         return "No events found for today"
     else:
         returnVal = ""
