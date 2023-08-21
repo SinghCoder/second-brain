@@ -18,6 +18,22 @@ def send_message_in_thread(channel_id, thread_ts, message):
         return {"error": {e}}
     return None
 
+def get_slack_message_link_from_ts(ts, channel_id = "C05NCPSEY0N"):
+    try:
+        resp = slack_client.chat_getPermalink(channel=channel_id, message_ts=ts)
+        return resp['permalink']
+    except Exception as e:
+        print(f"Error getting slack message link: {e}")
+        return {"error": {e}}
+
+def send_slack_dm(message="", blocks=[]):
+    try:
+        resp = slack_client.chat_postMessage(channel=slack_user_id, text=message, blocks=blocks)
+    except Exception as e:
+        print(f"Error sending slack message: {e}")
+        return {"error": {e}}
+    return None
+
 def send_slack_message(channel_id, message):
     print(f"Sending slack message: {message}")
     meeting_titles = []
