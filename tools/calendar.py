@@ -5,6 +5,7 @@ import dateutil.parser as parser
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from langchain.tools import tool
+from urlextract import URLExtract
 
 from db import create_meeting
 from oauth.google import get_google_oauth_creds
@@ -12,7 +13,7 @@ from tools.summarizer import summarize
 
 ## Google Calendar API 
 ## https://developers.google.com/calendar/api/v3/reference
-
+url_extractor = URLExtract()
 creds = get_google_oauth_creds()
 if creds is None:
     raise Exception("No credentials found")
@@ -108,8 +109,11 @@ def update_meeting_body(calendar_meeting_id: str, new_description: str) -> Any:
 
     current_description = event['description']
     new_description = current_description + "\n" + new_description
+    urls = url_extractor.find_urls(new_description)
+    print(urls)
     print(f"Summarizing new description: {new_description}")
     new_description = summarize(new_description)
+    new_description = new_description + "\n\n" + "\n".join(urls)
     # Update the description
     event['description'] = new_description
     print(f"Updating meeting {calendar_meeting_id} with new description {new_description}")

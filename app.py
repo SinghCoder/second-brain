@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+from urlextract import URLExtract
 
 from db import get_meeting_id_from_source_id, slack_message_exists, store_slack_message
 from distill import distill_agent_executor
