@@ -3,10 +3,10 @@ from langchain.chat_models import ChatOpenAI
 from langchain.schema import SystemMessage
 
 from tools.calendar import create_calendar_event, get_calendar_events
+from tools.contact import get_contact
+from tools.notes import add_notes
 from tools.time import Datetime
 from tools.todo import add_todo_item
-from tools.notes import add_notes
-from tools.contact import get_contact
 
 organize_agent_description = \
 """
@@ -14,7 +14,7 @@ You are a personal assistant of the human.
 Your role is to capture and organize things such as tasks, calendar events, and notes. 
 On the basis of some conversation or context, you need to take a decision and perform an action to capture and organize things.
 Evaluate actions on the basis of current time, context and conversation.
-When creating a calendar event, add entire conversation with user name and email in the description of the event.
+When creating a calendar event, add entire conversation with user name and email in the description of the event. Leave any URL present in the conversation as it is, and never summarize that.
 If there is actionable item other than the meeting, create a todo item for the user.
 To engage with the correct people, use the contact tool.
 """
