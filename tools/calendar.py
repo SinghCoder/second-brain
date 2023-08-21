@@ -52,7 +52,7 @@ def create_calendar_event(source_message_ts: str, title: str, description: str, 
         print(event)
         if event is None:
             raise Exception("Event creation failed")
-        create_meeting(source_message_ts, event['id'])
+        create_meeting(source_message_ts, event['id'], title, start_time.astimezone().isoformat(), end_time.astimezone().isoformat())
         return "Event successfully created. Do not create again. Stop now."
 
     except HttpError as error:

@@ -7,8 +7,17 @@ cursor = conn.cursor()
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS meetings (
         id TEXT PRIMARY KEY,     -- This would be the ID of the corresponding source from which the meeting was created. So, for Slack, this would be the parent Slack message ID.
-        meeting_id TEXT NOT NULL -- This would be the ID of the meeting in the calendar.
+        meeting_id TEXT NOT NULL, -- This would be the ID of the meeting in the calendar.
+        meeting_title TEXT NOT NULL,
+        start_time TEXT NOT NULL,
+        end_time TEXT NOT NULL
     )
+''')
+
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS processed_meetings_reminders (
+    meeting_id TEXT PRIMARY KEY
+);
 ''')
 
 cursor.execute('''
@@ -39,11 +48,11 @@ def slack_message_exists(message_id: str) -> bool:
     else:
         return False
 
-def create_meeting(source_id: str, meeting_id: str) -> None:
+def create_meeting(source_id: str, meeting_id: str, meeting_title: str, start_time: str, end_time: str) -> None:
     conn = sqlite3.connect('secondbrain.db')
     cursor = conn.cursor()
-    print(f"Creating meeting with source_id: {source_id} and meeting_id: {meeting_id}")
-    cursor.execute('INSERT INTO meetings VALUES (?, ?)', (source_id, meeting_id))
+    print(f"Creating meeting with source_id: {source_id} and meeting_id: {meeting_id}, meeting_title: {meeting_title}, start_time: {start_time}, end_time: {end_time}")
+    cursor.execute('INSERT INTO meetings VALUES (?, ?, ?, ?, ?)', (source_id, meeting_id, meeting_title, start_time, end_time))
     conn.commit()
     # Print all the rows in the table
     cursor.execute('SELECT * FROM meetings')
