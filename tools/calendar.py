@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any, List
 
+import dateutil.parser as parser
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from langchain.tools import tool
@@ -8,9 +9,6 @@ from langchain.tools import tool
 from db import create_meeting
 from oauth.google import get_google_oauth_creds
 from tools.summarizer import summarize
-
-from datetime import datetime
-import dateutil.parser as parser
 
 ## Google Calendar API 
 ## https://developers.google.com/calendar/api/v3/reference
@@ -26,6 +24,7 @@ def create_calendar_event(source_message_ts: str, title: str, description: str, 
     """
         Creates a Google Calendar event for the user with the given title, description, start time, and end time.
         It also invites the invitees (which is list of emails).
+        Any URL present in the conversation should not be summarized, and should be included in the description as it is.
         Returns the event ID of the created event.
         source_message_ts: The timestamp of the source message from which the meeting was created.
     """
