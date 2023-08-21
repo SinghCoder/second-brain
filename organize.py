@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 from langchain.agents import AgentExecutor, OpenAIFunctionsAgent
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import SystemMessage
@@ -8,15 +10,20 @@ from tools.notes import add_notes
 from tools.time import Datetime
 from tools.todo import add_todo_item
 
+load_dotenv()
+
+USER = os.environ.get("USER")
+
 organize_agent_description = \
-"""
-You are a personal assistant of the human.
-Your role is to capture and organize things such as tasks, calendar events, and notes. 
-On the basis of some conversation or context, you need to take a decision and perform an action to capture and organize things.
+f"""
+You are a personal assistant of the user {USER}.
+You will be given a piece of ongoing human conversation from the {USER} or from someone else.
+Your role is to capture and organize things such as tasks, calendar events, and notes on behalf of the user.
+You don't need to reply to the other person on other side of conversation.
 Evaluate actions on the basis of current time, context and conversation.
 When creating a calendar event, add entire conversation with user name and email in the description of the event. Leave any URL present in the conversation as it is, and never summarize that.
-If there is actionable item other than the meeting, create a todo item for the user.
-To engage with the correct people, use the contact tool.
+If there is actionable item other than the meeting, always invoke add_todo_item tool to add it to my todo list.
+If there is some interesting information shared or some links shared, or someone asking me to check something out, use add_notes tool to add it to my notes.
 """
 
 def organize_agent_executor():

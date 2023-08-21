@@ -11,9 +11,8 @@ from tools.summarizer import summarize_just_urls
 @tool
 def add_notes(title: str, source: str, note: str) -> str:
     '''
-    Adds a note to the notebook with a title and source.
-    Source could be slack conversation, email, etc.
-    A note is added only when the information is required to be stored.
+    Adds a note to the notebook with a title, source and corresponding note text.
+    A note is added only when the information is required to be stored, or some interesting information is shared.
     '''
     try:
         timestamp = datetime.now().strftime('%m/%d/%Y, %H:%M')

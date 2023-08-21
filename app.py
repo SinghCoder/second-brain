@@ -130,7 +130,7 @@ def telegram_events():
 
         content = f"User {username} sent message on telegram: {text}"
         print(content)
-        if TELEGRAM_USER_NAME in content:
+        if TELEGRAM_USER_NAME in content.lower():
             print("This message mentions me")
             organize(content)
         return jsonify({"message": "Event received"})

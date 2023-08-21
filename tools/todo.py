@@ -20,6 +20,8 @@ todoconn.close()
 def add_todo_item(what: str, when: str) -> str:
     '''
     Adds a todo item to the todo list.
+    what: What to do?
+    when: When to do?
     '''
     try:
         cal = pdt.Calendar()
@@ -31,7 +33,20 @@ def add_todo_item(what: str, when: str) -> str:
         cur = todoconn.cursor()
         cur.execute('SELECT * FROM todos WHERE what=?', (what,))
         if cur.fetchone() is not None:
-            return json.dumps({'what': what, 'when': when, 'status': 'already exists'})
+            result = json.dumps({'what': what, 'when': when, 'status': 'already exists'})
+            todoconn.commit()
+            cur = todoconn.cursor()
+            cur.execute('SELECT * FROM todos order by parsed_when asc')
+            todos = cur.fetchall()
+            with open('store/MyTodos.md', 'w') as f:
+                for row in todos:
+                    what = row[1]
+                    due = row[2]
+                    parsed_when = datetime.strptime(row[3], '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d %H:%M')
+                    completed = ' ' if row[4] == False else 'x'
+                    f.write(f"- [{completed}] {what} by {due} ({parsed_when})\n")
+            todoconn.commit()
+            return result
         todoconn.commit()
 
         ## Add to database
@@ -43,7 +58,7 @@ def add_todo_item(what: str, when: str) -> str:
         cur = todoconn.cursor()
         cur.execute('SELECT * FROM todos order by parsed_when asc')
         todos = cur.fetchall()
-        with open('store/todo.md', 'w') as f:
+        with open('store/MyTodos.md', 'w') as f:
             for row in todos:
                 what = row[1]
                 due = row[2]
