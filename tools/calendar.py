@@ -113,6 +113,8 @@ def update_meeting_body(calendar_meeting_id: str, new_description: str) -> Any:
     print(urls)
     print(f"Summarizing new description: {new_description}")
     new_description = summarize(new_description)
+    # Remove duplicate urls
+    urls = list(set(urls))
     new_description = new_description + "\n\n" + "\n".join(urls)
     # Update the description
     event['description'] = new_description
