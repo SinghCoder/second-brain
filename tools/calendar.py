@@ -9,6 +9,9 @@ from db import create_meeting
 from oauth.google import get_google_oauth_creds
 from tools.summarizer import summarize
 
+from datetime import datetime
+import dateutil.parser as parser
+
 ## Google Calendar API 
 ## https://developers.google.com/calendar/api/v3/reference
 
@@ -117,3 +120,39 @@ def update_meeting_body(calendar_meeting_id: str, new_description: str) -> Any:
 
     print("Event description updated.")
     return updated_event
+
+
+@tool
+def get_conflicting_meetings():
+    """
+        Returns list of conflicting meetings for the user for the current day, if any.
+    """
+    events = fetch_calendar_events()
+    if not events:
+        return "No events found for today"
+    event_summary = []
+    for event in events:
+        start = event['start'].get('dateTime', event['start'].get('date'))
+        start = parser.isoparse(start)
+        end = event['end'].get('dateTime', event['end'].get('date'))
+        end = parser.isoparse(end)
+        event_summary = event_summary + [{
+            'title': event['summary'],
+            'start': start,
+            'end': end,
+        }]
+
+    conflicts = []
+    event_summary.sort(key=lambda x: x['start'])
+    for i in range(len(event_summary) - 1):
+        if event_summary[i]['end'] > event_summary[i + 1]['start']:
+            conflicts = conflicts + [(event_summary[i], event_summary[i + 1])]
+    
+    if not conflicts:
+        return "No conflicts found for today"
+    else:
+        result = "Conflicts found for today: \n"
+        for e1, e2 in conflicts:
+            edesc = lambda e : f"{e['title']} at {e['start'].strftime('%H:%M')}"
+            result += f"{edesc(e1)} conflicts with {edesc(e2)}. \n"
+        return result

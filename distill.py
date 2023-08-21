@@ -1,7 +1,4 @@
 import os
-from datetime import datetime
-
-import dateutil.parser as parser
 from dotenv import load_dotenv
 from langchain.agents import AgentExecutor, OpenAIFunctionsAgent
 from langchain.chat_models import ChatOpenAI
@@ -12,6 +9,7 @@ from tools.calendar import (
     create_calendar_event,
     fetch_calendar_events,
     get_calendar_events,
+    get_conflicting_meetings,
 )
 from tools.contact import get_contact
 from tools.notes import add_notes
@@ -42,39 +40,4 @@ def distill_agent_executor():
     agent = OpenAIFunctionsAgent(llm=llm, tools=tools, prompt=prompt)
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
     return agent_executor
-
-@tool
-def get_conflicting_meetings():
-    """
-        Returns list of conflicting meetings for the user for the current day, if any.
-    """
-    events = fetch_calendar_events()
-    if not events:
-        return "No events found for today"
-    event_summary = []
-    for event in events:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        start = parser.isoparse(start)
-        end = event['end'].get('dateTime', event['end'].get('date'))
-        end = parser.isoparse(end)
-        event_summary = event_summary + [{
-            'title': event['summary'],
-            'start': start,
-            'end': end,
-        }]
-
-    conflicts = []
-    event_summary.sort(key=lambda x: x['start'])
-    for i in range(len(event_summary) - 1):
-        if event_summary[i]['end'] > event_summary[i + 1]['start']:
-            conflicts = conflicts + [(event_summary[i], event_summary[i + 1])]
-    
-    if not conflicts:
-        return "No conflicts found for today"
-    else:
-        result = "Conflicts found for today: \n"
-        for e1, e2 in conflicts:
-            edesc = lambda e : f"{e['title']} at {e['start'].strftime('%H:%M')}"
-            result += f"{edesc(e1)} conflicts with {edesc(e2)}. \n"
-        return result
 

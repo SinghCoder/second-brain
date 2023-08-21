@@ -62,6 +62,7 @@ def send_slack_message(channel_id, message):
                             "type": "plain_text",
                             "text": f"Cancel {meeting_titles[0]}"
                         },
+                        "style": "primary",
                         "value": "click_me_123",
                         "url": "https://calendar.google.com"
                     },
